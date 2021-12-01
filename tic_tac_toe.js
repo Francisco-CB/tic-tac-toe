@@ -12,6 +12,10 @@ gameBoard = (() => {
     function markTile(xCoord, yCoord, mark) {
         if (board[xCoord][yCoord] === null) {
             board[xCoord][yCoord] = mark;
+            return true
+        }
+        else {
+            return false
         }
     }
     
@@ -29,6 +33,10 @@ gameBoard = (() => {
 
 displayController = (() => {
     let turn = 0;
+    let mark = 'X';
+    let changed;
+    let coords;
+
     const tiles = document.getElementsByClassName('boardTile');
     Array.from(tiles).forEach(tile => tile.addEventListener("click", clicked));
 
@@ -57,25 +65,26 @@ displayController = (() => {
     }
 
     function updateBoard(x, y, mark) {
-        gameBoard.markTile(x, y, mark);
+        changed = gameBoard.markTile(x, y, mark);
         displayBoard();
+        return changed
     }
 
     function clicked(event) {
-        if (turn == 0) {
-            mark = 'X';
-            turn = 1;
-        }
-        
-        else {
-            mark = 'O';
-            turn = 0;
-        }
-
         coords = event.target.id.split('');
-        displayController.updateBoard(coords[0], coords[1], mark);
+        
+        if (updateBoard(coords[0], coords[1], mark)) {
+            if (turn == 0) {
+                mark = 'O';
+                turn = 1;
+            }
+            
+            else {
+                mark = 'X';
+                turn = 0;
+            }
+        }
     }
-
 
     return {updateBoard}
 })();
