@@ -1,0 +1,37 @@
+body {
+    background-color: white;
+    color:rgb(44, 44, 44);
+    font: x-large monospace;
+}
+
+h1 {
+    text-align: center;
+    text-justify: center;
+}
+
+.boardContainer {
+    margin: auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(50px, 100px) 1fr;
+    justify-items: center;
+    align-items: center;
+}
+
+.gameBoard {
+    background-color:rgb(44, 44, 44);
+    max-width: 600px;
+    display: grid;
+    align-content: center;
+    justify-content: center;
+    grid-gap: 3px;
+    grid-template-columns: repeat(3, minmax(50px, 1fr));
+    grid-template-rows: repeat(3, minmax(50px, 1fr));
+}
+
+.boardTile {
+    color: black;
+    background-color: white;
+    min-height: 50px;
+    min-width: 50px;
+}
