@@ -10,7 +10,9 @@ gameBoard = (() => {
     ];
 
     function markTile(xCoord, yCoord, mark) {
-        board[xCoord][yCoord] = mark;
+        if (board[xCoord][yCoord] === null) {
+            board[xCoord][yCoord] = mark;
+        }
     }
     
     function detectWinner() {
