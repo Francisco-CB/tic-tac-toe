@@ -3,11 +3,9 @@ const playerFactory = (name, mark) => {
 };
 
 gameBoard = (() => {
-    let board = [
-        [null, null, null], 
-        [null, null, null], 
-        [null, null, null]
-    ];
+    let n = 3; // size of grid (does not reflect page layout, yet)
+    let board;
+    resetBoard(n)
 
     function markTile(xCoord, yCoord, mark) {
         if (board[xCoord][yCoord] === null) {
@@ -23,7 +21,11 @@ gameBoard = (() => {
         console.log('detectWinner not implemented yet!');
     }
 
-    function resetBoard() {
+    function resetBoard(size) {
+        board = new Array(size)
+        for (let i=0; i<size; i++) {
+            board[i] = new Array(size)
+        }
         board.forEach(row => {row.fill(null)});
     }
     
