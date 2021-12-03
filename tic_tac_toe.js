@@ -1,12 +1,63 @@
 const playerFactory = (name, mark) => {
-    return {name, mark}
+    let rows;
+    let columns;
+    let diag;
+    let rdiag;
+
+    function initiateMovements(size){
+        rows = new Array(size);
+        rows.fill(0);
+
+        columns = new Array(size);
+        columns.fill(0);
+
+        diag = new Array(size);
+        diag.fill(0);
+
+        rdiag = new Array(size);
+        rdiag.fill(0);
+    }
+    
+    function resetMovements() {
+        rows.fill(0);
+        columns.fill(0);
+        diag.fill(0);
+        rdiag.fill(0);
+    }
+
+    function getMovements() {
+        return {rows, columns, diag, rdiag}
+    }
+
+    function addMovement(xIndex, yIndex, size) {
+        rows[xIndex] += 1;
+        columns[yIndex] += 1;
+        
+        if (xIndex == yIndex) {
+            diag[xIndex] += 1;
+        }
+
+        if (xIndex + yIndex == size - 1) {
+            rdiag[xIndex] += 1;
+        }
+    }
+
+    return {name, mark, initiateMovements, resetMovements, getMovements, addMovement}
 };
 
-gameBoard = (() => {
-    let n = 3; // size of grid (does not reflect page layout, yet)
+gameBoard = ((size) => {
     let board;
+    let boardSize = size; // size of grid (does not reflect page layout, yet)
     let numberOfMovements = 0; // for tracking total movements, when 9 and no winner it's a draw
-    resetBoard(n)
+    resetBoard(boardSize)
+
+    function getSize() {
+        return size
+    }
+
+    function getTotalMovements() {
+        return numberOfMovements
+    }
 
     function markTile(xCoord, yCoord, mark) {
         if (board[xCoord][yCoord] === null) {
@@ -18,13 +69,6 @@ gameBoard = (() => {
             return false
         }
     }
-    
-    function detectWinner() {
-        if (numberOfMovements == 9) {
-            console.log('Draw!');
-        }
-        console.log('detectWinner not implemented yet!');
-    }
 
     function resetBoard(size) {
         board = new Array(size)
@@ -34,18 +78,19 @@ gameBoard = (() => {
         board.forEach(row => {row.fill(null)});
     }
     
-    return {board, markTile, resetBoard, detectWinner}
-})();
+    return {board, getSize, getTotalMovements, markTile, resetBoard}
+})(3);
 
 
 displayController = (() => {
     let turn = 0;
-    let mark = 'X';
-    let changed;
     let coords;
+    let updateStatus;
 
     const tiles = document.getElementsByClassName('boardTile');
     Array.from(tiles).forEach(tile => tile.addEventListener("click", clicked));
+    let players = [playerFactory("John", "X"), playerFactory("Jane", "O")];
+    players.forEach(player => {player.initiateMovements(gameBoard.getSize())})
 
     function displayBoard() {
         let tileMark = null;
@@ -72,26 +117,32 @@ displayController = (() => {
     }
 
     function updateBoard(x, y, mark) {
-        changed = gameBoard.markTile(x, y, mark);
+        updateStatus = gameBoard.markTile(x, y, mark);
         displayBoard();
-        return changed
+        return updateStatus
     }
 
     function clicked(event) {
-        coords = event.target.id.split('');
+        coords = event.target.id.split('').map(function(element) {return parseInt(element, 10)});
         
-        if (updateBoard(coords[0], coords[1], mark)) {
-            gameBoard.detectWinner();
+        if (updateBoard(coords[0], coords[1], players[turn].mark)) {
+            players[turn].addMovement(coords[0], coords[1], gameBoard.getSize())
+            detectWinner();
+            
             if (turn == 0) {
-                mark = 'O';
                 turn = 1;
             }
-            
             else {
-                mark = 'X';
                 turn = 0;
             }
         }
+    }
+
+    function detectWinner() {
+        if (gameBoard.getTotalMovements() == 9) {
+            console.log('Draw!');
+        }
+        console.log('detectWinner not implemented yet!');
     }
 
     return {updateBoard}
