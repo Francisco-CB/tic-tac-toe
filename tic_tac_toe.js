@@ -5,11 +5,13 @@ const playerFactory = (name, mark) => {
 gameBoard = (() => {
     let n = 3; // size of grid (does not reflect page layout, yet)
     let board;
+    let numberOfMovements = 0; // for tracking total movements, when 9 and no winner it's a draw
     resetBoard(n)
 
     function markTile(xCoord, yCoord, mark) {
         if (board[xCoord][yCoord] === null) {
             board[xCoord][yCoord] = mark;
+            numberOfMovements += 1;
             return true
         }
         else {
@@ -18,6 +20,9 @@ gameBoard = (() => {
     }
     
     function detectWinner() {
+        if (numberOfMovements == 9) {
+            console.log('Draw!');
+        }
         console.log('detectWinner not implemented yet!');
     }
 
@@ -29,7 +34,7 @@ gameBoard = (() => {
         board.forEach(row => {row.fill(null)});
     }
     
-    return {board, markTile, resetBoard}
+    return {board, markTile, resetBoard, detectWinner}
 })();
 
 
@@ -76,6 +81,7 @@ displayController = (() => {
         coords = event.target.id.split('');
         
         if (updateBoard(coords[0], coords[1], mark)) {
+            gameBoard.detectWinner();
             if (turn == 0) {
                 mark = 'O';
                 turn = 1;
