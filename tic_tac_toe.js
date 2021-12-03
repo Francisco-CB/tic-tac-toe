@@ -26,7 +26,7 @@ const playerFactory = (name, mark) => {
     }
 
     function getMovements() {
-        return {rows, columns, diag, rdiag}
+        return [rows, columns, diag, rdiag]
     }
 
     function addMovement(xIndex, yIndex, size) {
@@ -127,7 +127,7 @@ displayController = (() => {
         
         if (updateBoard(coords[0], coords[1], players[turn].mark)) {
             players[turn].addMovement(coords[0], coords[1], gameBoard.getSize())
-            detectWinner();
+            detectWinner(players[turn], gameBoard.getSize());
             
             if (turn == 0) {
                 turn = 1;
@@ -138,11 +138,17 @@ displayController = (() => {
         }
     }
 
-    function detectWinner() {
+    function detectWinner(player, boardSize) {
+        movements = [...player.getMovements()];
+        for (let i = 0; i < movements.length; i++) {
+            if (movements[i].includes(boardSize)) {
+                console.log(`${player.mark} wins!`);
+                return true
+            }
+        }
         if (gameBoard.getTotalMovements() == 9) {
             console.log('Draw!');
         }
-        console.log('detectWinner not implemented yet!');
     }
 
     return {updateBoard}
