@@ -139,9 +139,11 @@ displayController = (() => {
     }
 
     function detectWinner(player, boardSize) {
+        const reducer = (previousValue, currentValue) => previousValue + currentValue;
+        const comparer = (previousValue, currentValue) => previousValue == currentValue && currentValue > 0;
         movements = [...player.getMovements()];
         for (let i = 0; i < movements.length; i++) {
-            if (movements[i].includes(boardSize)) {
+            if (movements[i].includes(boardSize) || (movements[i].reduce(reducer) == boardSize && movements[i].reduce(comparer))) {
                 console.log(`${player.mark} wins!`);
                 return true
             }
@@ -151,5 +153,5 @@ displayController = (() => {
         }
     }
 
-    return {updateBoard}
+    return {updateBoard, players}
 })();
