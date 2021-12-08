@@ -142,12 +142,25 @@ displayController = (() => {
         const reducer = (previousValue, currentValue) => previousValue + currentValue;
         const comparer = (previousValue, currentValue) => previousValue == currentValue && currentValue > 0;
         movements = [...player.getMovements()];
-        for (let i = 0; i < movements.length; i++) {
-            if (movements[i].includes(boardSize) || (movements[i].reduce(reducer) == boardSize && movements[i].reduce(comparer))) {
+        // Number of rows, columns, and diagonals independent of size of board
+        // Conditions always the same, just length of rows, columns, and diagonals changes
+        // Check rows and columns
+        for (let i = 0; i < movements.slice(0, 2).length; i++) {
+            if (movements.slice(0, 2)[i].includes(boardSize)) {
                 console.log(`${player.mark} wins!`);
                 return true
             }
         }
+
+        // Check diagonals
+        for (let j = 0; j < movements.slice(2).length; j++) {
+            if (movements.slice(2)[j].reduce(reducer) == boardSize && movements.slice(2)[j].reduce(comparer)) {
+                console.log(`${player.mark} wins!`);
+                return true
+            }
+        }
+
+        // Base case of draw
         if (gameBoard.getTotalMovements() == 9) {
             console.log('Draw!');
         }
