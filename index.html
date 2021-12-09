@@ -8,18 +8,35 @@
     <title>Tic-Tac-Toe</title>
 </head>
 <body>
-    <div class="boardContainer">
-        <h1>Tic-Tac-Toe!</h1>
-        <div class="gameBoard">
-            <div id='00' class="boardTile"></div>
-            <div id='01' class="boardTile"></div>
-            <div id='02' class="boardTile"></div>
-            <div id='10' class="boardTile"></div>
-            <div id='11' class="boardTile"></div>
-            <div id='12' class="boardTile"></div>
-            <div id='20' class="boardTile"></div>
-            <div id='21' class="boardTile"></div>
-            <div id='22' class="boardTile"></div>
+    <h1>Tic-Tac-Toe!</h1>
+    <div class="gameContainer">
+        <div class="playerContainer">
+            <div style="color: var(--gray);">Player X</div>
+            <div data-score="0">Score: </div>
+        </div>
+        
+        <div class="boardContainer">
+            <div class="gameBoard">
+                <div id='00' class="boardTile"></div>
+                <div id='01' class="boardTile"></div>
+                <div id='02' class="boardTile"></div>
+                <div id='10' class="boardTile"></div>
+                <div id='11' class="boardTile"></div>
+                <div id='12' class="boardTile"></div>
+                <div id='20' class="boardTile"></div>
+                <div id='21' class="boardTile"></div>
+                <div id='22' class="boardTile"></div>
+            </div>
+            
+            <div class="buttonsContainer">
+                <button>Start</button>
+                <button id="resetButton">Reset</button>
+            </div>    
+        </div>
+
+        <div class="playerContainer">
+            <div style="color: var(--red);">Player O</div>
+            <div data-score="0">Score: </div>
         </div>
     </div>
     <script src="tic_tac_toe.js"></script>

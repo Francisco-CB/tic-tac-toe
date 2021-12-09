@@ -1,21 +1,67 @@
+:root {
+    /*Colors used from Sultan Badri's version
+    found here: https://sultanbadri.github.io/tic-tac-toe/
+    I know he came up with them but the combination is beautiful*/
+    --red: #fc5185;
+    --light-red: #fa91b1;
+    --gray: #364f6b;
+    --light-white: #f0f0f0;
+    --black: #2c2c2c;
+}
+
 body {
-    background-color: white;
-    color:rgb(44, 44, 44);
-    font: x-large monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    color: var(--black);
+    font: normal normal bold x-large monospace;
+    font-size: 20px;
 }
 
 h1 {
-    text-align: center;
-    text-justify: center;
+    color: var(--gray);
+    text-shadow: 4px 4px var(--red);
+}
+
+button {
+    font: normal normal bold x-large monospace;
+    border: 2px solid;
+    border-radius: 15px;
+    min-height: 40px;
+    min-width: 120px;
+    background-color: var(--light-white);
+}
+
+button:hover {
+    background-color: var(--red);
+    border: 3px solid var(--gray);
+}
+
+.gameContainer {
+    margin: 0 auto;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-evenly;
+    align-content: center;
+    flex: 1 1 auto;
+}
+
+.playerContainer {
+    display: grid;
+    grid-template-rows: repeat(2, minmax(40px, 80px));
+    grid-template-columns: minmax(50px, 100px);
+    place-items: center;
 }
 
 .boardContainer {
-    margin: auto;
     display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: minmax(50px, 100px) 1fr;
-    justify-items: center;
-    align-items: center;
+    gap: 10px;
+    grid-template-rows: 1fr 1fr;
+    grid-template-columns: minmax(50px, 1fr);
+    place-items: center;
 }
 
 .gameBoard {
@@ -29,9 +75,26 @@ h1 {
     grid-template-rows: repeat(3, minmax(50px, 1fr));
 }
 
+.buttonsContainer {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(2, minmax(50px, 1fr));
+    align-content: center;
+    justify-content: center;
+}
+
 .boardTile {
-    color: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--gray);
     background-color: white;
     min-height: 50px;
     min-width: 50px;
+    font-size: 24px;
+    transition: background-color 0.2s ease-out; 
+}
+
+.boardTile:hover {
+    background: linear-gradient(to right, var(--gray) 0%, var(--red) 100%);
 }
