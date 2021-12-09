@@ -52,7 +52,7 @@ gameBoard = ((size) => {
     resetBoard(boardSize)
 
     function getSize() {
-        return size
+        return boardSize
     }
 
     function getTotalMovements() {
@@ -71,9 +71,11 @@ gameBoard = ((size) => {
     }
 
     function resetBoard(size) {
-        board = new Array(size)
-        for (let i=0; i<size; i++) {
-            board[i] = new Array(size)
+        if (board == undefined) {
+            board = new Array(size);
+            for (let i=0; i<size; i++) {
+                board[i] = new Array(size);
+            }
         }
         board.forEach(row => {row.fill(null)});
     }
@@ -89,8 +91,19 @@ displayController = (() => {
 
     const tiles = document.getElementsByClassName('boardTile');
     Array.from(tiles).forEach(tile => tile.addEventListener("click", clicked));
+    
+    const resetButton = document.getElementById('resetButton');
+    resetButton.addEventListener("click", resetGame);
+
     let players = [playerFactory("John", "X"), playerFactory("Jane", "O")];
     players.forEach(player => {player.initiateMovements(gameBoard.getSize())})
+
+    function resetGame() {
+        gameBoard.resetBoard(gameBoard.getSize());
+        displayBoard();
+        turn = 0;
+        players.forEach(player => {player.initiateMovements(gameBoard.getSize())})
+    }
 
     function displayBoard() {
         let tileMark = null;
