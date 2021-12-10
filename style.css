@@ -19,7 +19,7 @@ body {
     color: var(--black);
     background-color: var(--floral-white);
     font: normal normal bold x-large monospace;
-    font-size: 20px;
+    font-size: 26px;
 }
 
 h1 {
@@ -45,44 +45,35 @@ button:hover {
     margin: 0 auto;
     display: flex;
     flex-direction: row;
-    flex-wrap: nowrap;
+    flex: 1 1 auto;
+    gap: 25px;
     justify-content: space-evenly;
     align-content: center;
-    flex: 1 1 auto;
 }
 
 .playerContainer {
     display: grid;
     grid-template-rows: repeat(2, minmax(40px, 80px));
-    grid-template-columns: minmax(50px, 100px);
+    grid-template-columns: minmax(50px, 150px);
     place-items: center;
 }
 
 .boardContainer {
     display: grid;
     gap: 10px;
-    grid-template-rows: 1fr 1fr;
-    grid-template-columns: minmax(50px, 1fr);
+    grid-template-rows: 1fr minmax(80px, 100px);
+    grid-template-columns: minmax(280px, 1fr);
     place-items: center;
 }
 
 .gameBoard {
     background-color: var(--black);
-    max-width: 600px;
     display: grid;
     align-content: center;
     justify-content: center;
-    grid-gap: 3px;
-    grid-template-columns: repeat(3, minmax(50px, 1fr));
-    grid-template-rows: repeat(3, minmax(50px, 1fr));
-}
-
-.buttonsContainer {
-    display: grid;
-    gap: 10px;
-    grid-template-columns: repeat(2, minmax(50px, 1fr));
-    align-content: center;
-    justify-content: center;
+    grid-gap: 5px;
+    grid-template-columns: repeat(3, minmax(80px, 1fr));
+    grid-template-rows: repeat(3, minmax(80px, 1fr));
 }
 
 .boardTile {
@@ -90,12 +81,18 @@ button:hover {
     justify-content: center;
     align-items: center;
     background-color: var(--floral-white);
-    min-height: 50px;
-    min-width: 50px;
-    font-size: 24px;
-    transition: background-color 0.2s ease-out; 
+    font-size: 38px;
+    transition: background-color 0.3s ease-in-out;
 }
 
 .boardTile:hover {
     background: linear-gradient(to right, var(--cyan-process) 0%, var(--cinnabar) 100%);
+}
+
+.buttonsContainer {
+    display: grid;
+    gap: 15px;
+    grid-template-columns: repeat(2, minmax(80px, 1fr));
+    align-content: center;
+    justify-content: center;
 }
