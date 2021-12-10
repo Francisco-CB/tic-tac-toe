@@ -1,4 +1,4 @@
-const playerFactory = (name, mark) => {
+const playerFactory = (mark) => {
     let rows;
     let columns;
     let diag;
@@ -42,7 +42,7 @@ const playerFactory = (name, mark) => {
         }
     }
 
-    return {name, mark, initiateMovements, resetMovements, getMovements, addMovement}
+    return {mark, initiateMovements, resetMovements, getMovements, addMovement}
 };
 
 gameBoard = ((size) => {
@@ -73,11 +73,12 @@ gameBoard = ((size) => {
     function resetBoard(size) {
         if (board == undefined) {
             board = new Array(size);
-            for (let i=0; i<size; i++) {
+            for (let i = 0; i < size; i++) {
                 board[i] = new Array(size);
             }
         }
         board.forEach(row => {row.fill(null)});
+        numberOfMovements = 0;
     }
     
     return {board, getSize, getTotalMovements, markTile, resetBoard}
@@ -87,6 +88,7 @@ gameBoard = ((size) => {
 displayController = (() => {
     let turn = 0;
     let coords;
+    let winner;
     let updateStatus;
 
     const tiles = document.getElementsByClassName('boardTile');
@@ -95,14 +97,19 @@ displayController = (() => {
     const resetButton = document.getElementById('resetButton');
     resetButton.addEventListener("click", resetGame);
 
-    let players = [playerFactory("John", "X"), playerFactory("Jane", "O")];
-    players.forEach(player => {player.initiateMovements(gameBoard.getSize())})
+    let players = [playerFactory("X"), playerFactory("O")];
+    players.forEach(player => {player.initiateMovements(gameBoard.getSize())});
 
     function resetGame() {
-        gameBoard.resetBoard(gameBoard.getSize());
-        displayBoard();
         turn = 0;
-        players.forEach(player => {player.initiateMovements(gameBoard.getSize())})
+        gameBoard.resetBoard(gameBoard.getSize());
+        players.forEach(player => {player.resetMovements()})
+        Array.from(tiles).forEach(tile => tile.addEventListener("click", clicked));
+        displayBoard();
+    }
+
+    function endGame() {
+        Array.from(tiles).forEach(tile => tile.removeEventListener("click", clicked));
     }
 
     function displayBoard() {
@@ -139,9 +146,13 @@ displayController = (() => {
         coords = event.target.id.split('').map(function(element) {return parseInt(element, 10)});
         
         if (updateBoard(coords[0], coords[1], players[turn].mark)) {
-            players[turn].addMovement(coords[0], coords[1], gameBoard.getSize())
-            detectWinner(players[turn], gameBoard.getSize());
+            players[turn].addMovement(coords[0], coords[1], gameBoard.getSize());
+            winner = detectWinner(players[turn], gameBoard.getSize());
             
+            if(winner) {
+                endGame();
+            }
+
             if (turn == 0) {
                 turn = 1;
             }
