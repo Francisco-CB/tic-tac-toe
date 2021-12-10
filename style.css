@@ -1,12 +1,13 @@
 :root {
-    /*Colors used from Sultan Badri's version
-    found here: https://sultanbadri.github.io/tic-tac-toe/
-    I know he came up with them but the combination is beautiful*/
-    --red: #fc5185;
-    --light-red: #fa91b1;
-    --gray: #364f6b;
-    --light-white: #f0f0f0;
-    --black: #2c2c2c;
+    --black: #001219ff;
+    --blue-sapphire: #005f73ff;
+    --floral-white: #fbf8efff;
+    --antique-white: #FFEBD6;
+    --gamboge: #ee9b00ff;
+    --rufous: #ae2012ff;
+    --ruby-red: #9b2226ff;
+    --cinnabar: #EA4334;
+    --cyan-process: #00BBE0; 
 }
 
 body {
@@ -16,27 +17,28 @@ body {
     flex-direction: column;
     flex-wrap: nowrap;
     color: var(--black);
+    background-color: var(--floral-white);
     font: normal normal bold x-large monospace;
     font-size: 20px;
 }
 
 h1 {
-    color: var(--gray);
-    text-shadow: 4px 4px var(--red);
+    color: var(--blue-sapphire);
+    text-shadow: 4px 4px var(--rufous);
 }
 
 button {
-    font: normal normal bold x-large monospace;
-    border: 2px solid;
-    border-radius: 15px;
     min-height: 40px;
     min-width: 120px;
-    background-color: var(--light-white);
+    font: normal normal bold x-large monospace;
+    background-color: var(--antique-white);
+    border: 2px solid var(--ruby-red);
+    border-radius: 15px;
 }
 
 button:hover {
-    background-color: var(--red);
-    border: 3px solid var(--gray);
+    background-color: var(--gamboge);
+    border: 3px solid var(--gamboge);
 }
 
 .gameContainer {
@@ -65,7 +67,7 @@ button:hover {
 }
 
 .gameBoard {
-    background-color:rgb(44, 44, 44);
+    background-color: var(--black);
     max-width: 600px;
     display: grid;
     align-content: center;
@@ -87,8 +89,7 @@ button:hover {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: var(--gray);
-    background-color: white;
+    background-color: var(--floral-white);
     min-height: 50px;
     min-width: 50px;
     font-size: 24px;
@@ -96,5 +97,5 @@ button:hover {
 }
 
 .boardTile:hover {
-    background: linear-gradient(to right, var(--gray) 0%, var(--red) 100%);
+    background: linear-gradient(to right, var(--cyan-process) 0%, var(--cinnabar) 100%);
 }
