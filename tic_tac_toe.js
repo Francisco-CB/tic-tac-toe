@@ -3,6 +3,7 @@ const playerFactory = (mark) => {
     let columns;
     let diag;
     let rdiag;
+    let score = 0;
 
     function initiateMovements(size){
         rows = new Array(size);
@@ -42,7 +43,19 @@ const playerFactory = (mark) => {
         }
     }
 
-    return {mark, initiateMovements, resetMovements, getMovements, addMovement}
+    function getScore() {
+        return score
+    }
+
+    function increaseScore() {
+        score += 1;
+    }
+
+    function resetScore() {
+        score = 0;
+    }
+
+    return {mark, initiateMovements, resetMovements, getMovements, addMovement, getScore, increaseScore, resetScore}
 };
 
 gameBoard = ((size) => {
@@ -99,11 +112,14 @@ displayController = (() => {
 
     let players = [playerFactory("X"), playerFactory("O")];
     players.forEach(player => {player.initiateMovements(gameBoard.getSize())});
+    
+    let scores = [document.getElementById('playerXScore'), document.getElementById('playerOScore')];
 
     function resetGame() {
         turn = 0;
         gameBoard.resetBoard(gameBoard.getSize());
-        players.forEach(player => {player.resetMovements()})
+        players.forEach(player => {player.resetMovements()});
+        players.forEach(player => {player.resetScore()});
         Array.from(tiles).forEach(tile => tile.addEventListener("click", clicked));
         displayBoard();
     }
@@ -117,6 +133,10 @@ displayController = (() => {
         let selectedTile = null;
         let tileId = null;
         
+        for(let k = 0; k < scores.length; k++) {
+            scores[k].textContent = `Score: ${players[k].getScore()}`;
+        }
+
         for (let i=0; i < 3; i++) {
             for (let j=0; j < 3; j++) {
                 tileMark = gameBoard.board[i][j];
@@ -142,26 +162,6 @@ displayController = (() => {
         return updateStatus
     }
 
-    function clicked(event) {
-        coords = event.target.id.split('').map(function(element) {return parseInt(element, 10)});
-        
-        if (updateBoard(coords[0], coords[1], players[turn].mark)) {
-            players[turn].addMovement(coords[0], coords[1], gameBoard.getSize());
-            winner = detectWinner(players[turn], gameBoard.getSize());
-            
-            if(winner) {
-                endGame();
-            }
-
-            if (turn == 0) {
-                turn = 1;
-            }
-            else {
-                turn = 0;
-            }
-        }
-    }
-
     function detectWinner(player, boardSize) {
         const reducer = (previousValue, currentValue) => previousValue + currentValue;
         const comparer = (previousValue, currentValue) => previousValue == currentValue && currentValue > 0;
@@ -171,22 +171,42 @@ displayController = (() => {
         // Check rows and columns
         for (let i = 0; i < movements.slice(0, 2).length; i++) {
             if (movements.slice(0, 2)[i].includes(boardSize)) {
-                console.log(`${player.mark} wins!`);
                 return true
             }
         }
-
+        
         // Check diagonals
         for (let j = 0; j < movements.slice(2).length; j++) {
             if (movements.slice(2)[j].reduce(reducer) == boardSize && movements.slice(2)[j].reduce(comparer)) {
-                console.log(`${player.mark} wins!`);
                 return true
             }
         }
-
+        
         // Base case of draw
         if (gameBoard.getTotalMovements() == 9) {
-            console.log('Draw!');
+            return false
+        }
+    }
+    
+    function clicked(event) {
+        coords = event.target.id.split('').map(function(element) {return parseInt(element, 10)});
+        
+        if (updateBoard(coords[0], coords[1], players[turn].mark)) {
+            players[turn].addMovement(coords[0], coords[1], gameBoard.getSize());
+            winner = detectWinner(players[turn], gameBoard.getSize());
+            
+            if(winner) {
+                players[turn].increaseScore();
+                scores[turn].textContent = `Score: ${players[turn].getScore()}`;
+                endGame();
+            }
+
+            if (turn == 0) {
+                turn = 1;
+            }
+            else {
+                turn = 0;
+            }
         }
     }
 
