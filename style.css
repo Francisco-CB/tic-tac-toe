@@ -27,6 +27,11 @@ h1 {
     text-shadow: 4px 4px var(--rufous);
 }
 
+h1, h3 {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
 button {
     min-height: 40px;
     min-width: 120px;
@@ -42,7 +47,7 @@ button:hover {
 }
 
 .gameContainer {
-    margin: 0 auto;
+    margin-top: 15px;
     display: flex;
     flex-direction: row;
     flex: 1 1 auto;

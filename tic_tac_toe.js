@@ -103,6 +103,8 @@ displayController = (() => {
     let winner;
     let updateStatus;
 
+    const infoDisplay = document.getElementById('infoDisplay');
+
     const tiles = document.getElementsByClassName('boardTile');
     
     const startButton = document.getElementById('startButton'); 
@@ -120,15 +122,18 @@ displayController = (() => {
         players.forEach(player => {player.resetMovements(gameBoard.getSize())});
         Array.from(tiles).forEach(tile => tile.addEventListener("click", clicked));
         displayBoard();
+        infoDisplay.textContent = `Player ${players[turn].mark}'s turn`;
     }
 
     function resetGame() {
         turn = 0;
         players.forEach(player => {player.resetScore()});
+        infoDisplay.textContent = `Let's play!`;
         gameBoard.resetBoard(gameBoard.getSize());
         players.forEach(player => {player.resetMovements(gameBoard.getSize())});
         Array.from(tiles).forEach(tile => tile.addEventListener("click", clicked));
-        displayBoard();
+        displayBoard();   
+        setTimeout(() => {infoDisplay.textContent = `Player ${players[turn].mark}'s turn`;}, 350);
     }
 
     function endGame() {
@@ -202,10 +207,15 @@ displayController = (() => {
             players[turn].addMovement(coords[0], coords[1], gameBoard.getSize());
             winner = detectWinner(players[turn], gameBoard.getSize());
             
-            if(winner) {
+            if (winner) {
                 players[turn].increaseScore();
                 scores[turn].textContent = `Score: ${players[turn].getScore()}`;
+                infoDisplay.textContent = `Congrats player ${players[turn].mark}, you win!`;
                 endGame();
+            }
+            
+            if (winner === false) {
+                infoDisplay.textContent = `Draw!`;
             }
 
             if (turn == 0) {
@@ -213,6 +223,10 @@ displayController = (() => {
             }
             else {
                 turn = 0;
+            }
+
+            if (winner == undefined) {
+                infoDisplay.textContent = `Player ${players[turn].mark}'s turn`;
             }
         }
     }
