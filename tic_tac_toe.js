@@ -5,21 +5,20 @@ const playerFactory = (mark) => {
     let rdiag;
     let score = 0;
 
-    function initiateMovements(size){
-        rows = new Array(size);
-        rows.fill(0);
+    function resetMovements(size) {
+        if(rows == undefined) {
+            rows = new Array(size);
+        }
+        if(columns == undefined) {
+            columns = new Array(size);
+        }
+        if(diag == undefined) {
+            diag = new Array(size);
+        }
+        if(rdiag == undefined) {
+            rdiag = new Array(size);
+        }
 
-        columns = new Array(size);
-        columns.fill(0);
-
-        diag = new Array(size);
-        diag.fill(0);
-
-        rdiag = new Array(size);
-        rdiag.fill(0);
-    }
-    
-    function resetMovements() {
         rows.fill(0);
         columns.fill(0);
         diag.fill(0);
@@ -55,7 +54,7 @@ const playerFactory = (mark) => {
         score = 0;
     }
 
-    return {mark, initiateMovements, resetMovements, getMovements, addMovement, getScore, increaseScore, resetScore}
+    return {mark, resetMovements, getMovements, addMovement, getScore, increaseScore, resetScore}
 };
 
 gameBoard = ((size) => {
@@ -105,21 +104,29 @@ displayController = (() => {
     let updateStatus;
 
     const tiles = document.getElementsByClassName('boardTile');
-    Array.from(tiles).forEach(tile => tile.addEventListener("click", clicked));
+    
+    const startButton = document.getElementById('startButton'); 
+    startButton.addEventListener("click", startGame);
     
     const resetButton = document.getElementById('resetButton');
     resetButton.addEventListener("click", resetGame);
-
+    
     let players = [playerFactory("X"), playerFactory("O")];
-    players.forEach(player => {player.initiateMovements(gameBoard.getSize())});
     
     let scores = [document.getElementById('playerXScore'), document.getElementById('playerOScore')];
+    
+    function startGame() {
+        gameBoard.resetBoard(gameBoard.getSize());
+        players.forEach(player => {player.resetMovements(gameBoard.getSize())});
+        Array.from(tiles).forEach(tile => tile.addEventListener("click", clicked));
+        displayBoard();
+    }
 
     function resetGame() {
         turn = 0;
-        gameBoard.resetBoard(gameBoard.getSize());
-        players.forEach(player => {player.resetMovements()});
         players.forEach(player => {player.resetScore()});
+        gameBoard.resetBoard(gameBoard.getSize());
+        players.forEach(player => {player.resetMovements(gameBoard.getSize())});
         Array.from(tiles).forEach(tile => tile.addEventListener("click", clicked));
         displayBoard();
     }
