@@ -1,9 +1,14 @@
-const playerFactory = (mark) => {
+const playerFactory = (mark, computer) => {
     let rows;
     let columns;
     let diag;
     let rdiag;
     let score = 0;
+    let bot = computer ?? false;
+
+    function isBot() {
+        return bot
+    }
 
     function resetMovements(size) {
         if(rows == undefined) {
@@ -42,6 +47,14 @@ const playerFactory = (mark) => {
         }
     }
 
+    function makeRandomMove(max, min=0) {
+        x = Math.floor(Math.random() * (max - min + 1) + min);
+        y = Math.floor(Math.random() * (max - min + 1) + min);
+        randomCoords = [x, y];
+        // return [x, y]
+        return randomCoords
+    }
+
     function getScore() {
         return score
     }
@@ -54,7 +67,7 @@ const playerFactory = (mark) => {
         score = 0;
     }
 
-    return {mark, resetMovements, getMovements, addMovement, getScore, increaseScore, resetScore}
+    return {mark, isBot, resetMovements, getMovements, addMovement, makeRandomMove, getScore, increaseScore, resetScore}
 };
 
 gameBoard = ((size) => {
@@ -71,15 +84,24 @@ gameBoard = ((size) => {
         return numberOfMovements
     }
 
-    function markTile(xCoord, yCoord, mark) {
+    function isValidMove(xCoord, yCoord) {
         if (board[xCoord][yCoord] === null) {
-            board[xCoord][yCoord] = mark;
-            numberOfMovements += 1;
-            return true
+           return true
         }
         else {
             return false
         }
+    }
+
+    function markTile(xCoord, yCoord, mark) {
+        if (isValidMove(xCoord, yCoord)) {
+            board[xCoord][yCoord] = mark;
+            numberOfMovements += 1;
+            // return true
+        }
+        // else {
+        //     return false
+        // }
     }
 
     function resetBoard(size) {
@@ -93,7 +115,7 @@ gameBoard = ((size) => {
         numberOfMovements = 0;
     }
     
-    return {board, getSize, getTotalMovements, markTile, resetBoard}
+    return {board, getSize, getTotalMovements, isValidMove, markTile, resetBoard}
 })(3);
 
 
@@ -102,6 +124,7 @@ displayController = (() => {
     let coords;
     let winner;
     let updateStatus;
+    let validMove;
 
     const infoDisplay = document.getElementById('infoDisplay');
 
@@ -113,16 +136,41 @@ displayController = (() => {
     const resetButton = document.getElementById('resetButton');
     resetButton.addEventListener("click", resetGame);
     
-    let players = [playerFactory("X"), playerFactory("O")];
+    let players = [playerFactory("X"), playerFactory("O", computer=true)];
     
     let scores = [document.getElementById('playerXScore'), document.getElementById('playerOScore')];
-    
+
+    function setNextTurn(currentTurn) {
+        if (currentTurn == 0) {
+            turn = 1;
+        }
+        else {
+            turn = 0;
+        }
+    }
+
+    function makeBotMove(player) {
+            validMove = false;
+            while (!validMove) {
+                randomCoords = player.makeRandomMove(gameBoard.getSize()-1);
+                validMove = gameBoard.isValidMove(randomCoords[0], randomCoords[1]);
+            }
+            document.getElementById(`${randomCoords[0]}${randomCoords[1]}`).click();
+    }
+
+    function ifPlayerBotMove(player) {
+        if(player.isBot()) {
+            makeBotMove(players[turn]);
+        }
+    }
+
     function startGame() {
         gameBoard.resetBoard(gameBoard.getSize());
         players.forEach(player => {player.resetMovements(gameBoard.getSize())});
         Array.from(tiles).forEach(tile => tile.addEventListener("click", clicked));
         displayBoard();
         infoDisplay.textContent = `Player ${players[turn].mark}'s turn`;
+        ifPlayerBotMove(players[turn]);
     }
 
     function resetGame() {
@@ -152,7 +200,7 @@ displayController = (() => {
         for (let i=0; i < 3; i++) {
             for (let j=0; j < 3; j++) {
                 tileMark = gameBoard.board[i][j];
-                tileId = `${i}` + `${j}`;
+                tileId = `${i}${j}`;
                 selectedTile = document.getElementById(tileId);
                 
                 if (tileMark === null) {
@@ -198,35 +246,35 @@ displayController = (() => {
         if (gameBoard.getTotalMovements() == 9) {
             return false
         }
+        return null
     }
     
     function clicked(event) {
         coords = event.target.id.split('').map(function(element) {return parseInt(element, 10)});
-        
-        if (updateBoard(coords[0], coords[1], players[turn].mark)) {
+
+        if (gameBoard.isValidMove(coords[0], coords[1])) {
+            gameBoard.markTile(coords[0], coords[1], players[turn].mark);
+            displayBoard();
             players[turn].addMovement(coords[0], coords[1], gameBoard.getSize());
             winner = detectWinner(players[turn], gameBoard.getSize());
-            
+
             if (winner) {
                 players[turn].increaseScore();
                 scores[turn].textContent = `Score: ${players[turn].getScore()}`;
                 infoDisplay.textContent = `Congrats player ${players[turn].mark}, you win!`;
                 endGame();
             }
-            
-            if (winner === false) {
+
+            else if (winner === false) {
                 infoDisplay.textContent = `Draw!`;
+                endGame();
             }
+            
+            setNextTurn(turn);
 
-            if (turn == 0) {
-                turn = 1;
-            }
-            else {
-                turn = 0;
-            }
-
-            if (winner == undefined) {
+            if (winner == null) {
                 infoDisplay.textContent = `Player ${players[turn].mark}'s turn`;
+                ifPlayerBotMove(players[turn]);
             }
         }
     }
