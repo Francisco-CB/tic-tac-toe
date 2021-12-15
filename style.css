@@ -102,7 +102,7 @@ button:hover {
     justify-content: center;
 }
 
-/* Taken from 
+/* Taken (and modified) from:
 https://codepen.io/Mr_Rahul_Tiwari/pen/ZEWMZNV */
 
 .button
@@ -134,29 +134,30 @@ https://codepen.io/Mr_Rahul_Tiwari/pen/ZEWMZNV */
 
 .knobs
 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
     z-index: 2;
 }
 
-#button-playerX .knobs:before, #button-playerO .knobs:before
+#toggle-playerX .knobs::before, #toggle-playerO .knobs::before
 {
     content: 'Human';
     margin: 0 auto;
+    padding: 5px 4px;
+    width: 40px;
     position: absolute;
     top: 4px;
     left: 4px;
-    width: 40px;
-    height: 10px;
-    color: var(--black);
     font-size: 12px;
-    text-align: center;
-    line-height: 1;
-    padding: 9px 4px;
+    color: var(--black);
     background-color: var(--cyan-process);
     border-radius: 5px;
     transition: 0.1s ease all, left 0.3s cubic-bezier(0.18, 0.89, 0.35, 1.15);
 }
 
-#button-playerX .checkbox:checked + .knobs:before, #button-playerO .checkbox:checked + .knobs:before
+#toggle-playerX .checkbox:checked + .knobs::before, #toggle-playerO .checkbox:checked + .knobs::before
 {
     content: 'Bot';
     left: 48px;
