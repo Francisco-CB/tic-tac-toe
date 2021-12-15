@@ -3,7 +3,7 @@
     --blue-sapphire: #005f73ff;
     --floral-white: #fbf8efff;
     --antique-white: #FFEBD6;
-    --gamboge: #ee9b00ff;
+    --gamboge: rgba(238, 155, 0, 0.3);
     --rufous: #ae2012ff;
     --ruby-red: #9b2226ff;
     --cinnabar: #EA4334;
@@ -58,7 +58,7 @@ button:hover {
 
 .playerContainer {
     display: grid;
-    grid-template-rows: repeat(2, minmax(40px, 80px));
+    grid-template-rows: repeat(3, minmax(40px, 80px));
     grid-template-columns: minmax(50px, 150px);
     place-items: center;
 }
@@ -100,4 +100,65 @@ button:hover {
     grid-template-columns: repeat(2, minmax(80px, 1fr));
     align-content: center;
     justify-content: center;
+}
+
+/* Taken from 
+https://codepen.io/Mr_Rahul_Tiwari/pen/ZEWMZNV */
+
+.button
+{
+    position: relative;
+    width: 100px;
+    height: 36px;
+    margin: 0 auto;
+    overflow: hidden;
+    background: linear-gradient(to right, var(--blue-sapphire) 0%, var(--ruby-red) 100%);
+}
+
+.button.b2
+{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+}
+
+.checkbox
+{
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 3;
+}
+
+.knobs
+{
+    z-index: 2;
+}
+
+#button-playerX .knobs:before, #button-playerO .knobs:before
+{
+    content: 'Human';
+    margin: 0 auto;
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 40px;
+    height: 10px;
+    color: var(--black);
+    font-size: 12px;
+    text-align: center;
+    line-height: 1;
+    padding: 9px 4px;
+    background-color: var(--cyan-process);
+    border-radius: 5px;
+    transition: 0.1s ease all, left 0.3s cubic-bezier(0.18, 0.89, 0.35, 1.15);
+}
+
+#button-playerX .checkbox:checked + .knobs:before, #button-playerO .checkbox:checked + .knobs:before
+{
+    content: 'Bot';
+    left: 48px;
+    background-color: var(--cinnabar);
 }
