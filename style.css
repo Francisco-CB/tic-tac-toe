@@ -102,6 +102,10 @@ button:hover {
     justify-content: center;
 }
 
+#playerXScore, #playerOScore {
+    display: flex;
+}
+
 /* Taken (and modified) from:
 https://codepen.io/Mr_Rahul_Tiwari/pen/ZEWMZNV */
 

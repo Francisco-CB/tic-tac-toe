@@ -9,14 +9,17 @@
 </head>
 <body>
     <h1>Tic-Tac-Toe!</h1>
-    <h3 id="infoDisplay">Let's play!</h3>
+    <h3 id="infoDisplay">Press Start to play!</h3>
     <div class="gameContainer">
         <div class="playerContainer">
             <div style="color: var(--blue-sapphire);">Player X</div>
-            <div id="playerXScore">Score: 0</div>
+            <div id="playerXScore">
+                <div>Score:&nbsp</div>
+                <div class="score">0</div>
+            </div>
             <!-- See CSS to check where to get toggle button -->
             <div class="button b2" id="toggle-playerX">
-                <input type="checkbox" class="checkbox">
+                <input name="xToggle" type="checkbox" class="checkbox">
                 <div class="knobs"></div>
             </div>
         </div>
@@ -42,10 +45,13 @@
 
         <div class="playerContainer">
             <div style="color: var(--rufous);">Player O</div>
-            <div id="playerOScore">Score: 0</div>
+            <div id="playerOScore">
+                <div>Score:&nbsp</div>
+                <div class="score">0</div>
+            </div>
             <!-- See CSS to check where to get toggle button -->
             <div class="button b2" id="toggle-playerO">
-                <input type="checkbox" class="checkbox">
+                <input name="oToggle" type="checkbox" class="checkbox">
                 <div class="knobs"></div>
             </div>
         </div>

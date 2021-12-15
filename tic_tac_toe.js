@@ -3,7 +3,6 @@ const playerFactory = (mark, computer) => {
     let columns;
     let diag;
     let rdiag;
-    let score = 0;
     let bot = computer ?? false;
 
     function isBot() {
@@ -55,19 +54,7 @@ const playerFactory = (mark, computer) => {
         return randomCoords
     }
 
-    function getScore() {
-        return score
-    }
-
-    function increaseScore() {
-        score += 1;
-    }
-
-    function resetScore() {
-        score = 0;
-    }
-
-    return {mark, isBot, resetMovements, getMovements, addMovement, makeRandomMove, getScore, increaseScore, resetScore}
+    return {mark, isBot, resetMovements, getMovements, addMovement, makeRandomMove}
 };
 
 gameBoard = ((size) => {
@@ -123,11 +110,14 @@ displayController = (() => {
     let turn = 0;
     let coords;
     let winner;
-    let updateStatus;
+    let players;
     let validMove;
 
     const infoDisplay = document.getElementById('infoDisplay');
-
+    
+    const playerXToggle = document.querySelector('#toggle-playerX input[name="xToggle"]');
+    const playerOToggle = document.querySelector('#toggle-playerO input[name="oToggle"]');
+    
     const tiles = document.getElementsByClassName('boardTile');
     
     const startButton = document.getElementById('startButton'); 
@@ -136,9 +126,15 @@ displayController = (() => {
     const resetButton = document.getElementById('resetButton');
     resetButton.addEventListener("click", resetGame);
     
-    let players = [playerFactory("X"), playerFactory("O", computer=true)];
+    let scores = [document.querySelector('#playerXScore .score'), document.querySelector('#playerOScore .score')];
     
-    let scores = [document.getElementById('playerXScore'), document.getElementById('playerOScore')];
+    function makePlayers() {
+        players = [
+            playerFactory("X", computer=playerXToggle.checked), 
+            playerFactory("O", computer=playerOToggle.checked)
+        ];
+        players.forEach(player => {player.resetMovements(gameBoard.getSize())});
+    }
 
     function setNextTurn(currentTurn) {
         if (currentTurn == 0) {
@@ -164,9 +160,20 @@ displayController = (() => {
         }
     }
 
+    function enableBotToggles() {
+        playerXToggle.disabled = false;
+        playerOToggle.disabled = false;
+    }
+
+    function disableBotToggles() {
+        playerXToggle.disabled = true;
+        playerOToggle.disabled = true;
+    }
+
     function startGame() {
+        disableBotToggles();
         gameBoard.resetBoard(gameBoard.getSize());
-        players.forEach(player => {player.resetMovements(gameBoard.getSize())});
+        makePlayers();
         Array.from(tiles).forEach(tile => tile.addEventListener("click", clicked));
         displayBoard();
         infoDisplay.textContent = `Player ${players[turn].mark}'s turn`;
@@ -174,28 +181,23 @@ displayController = (() => {
     }
 
     function resetGame() {
+        infoDisplay.textContent = `Press Start to play!`;
         turn = 0;
-        players.forEach(player => {player.resetScore()});
-        infoDisplay.textContent = `Let's play!`;
+        resetScore();
+        enableBotToggles();
         gameBoard.resetBoard(gameBoard.getSize());
-        players.forEach(player => {player.resetMovements(gameBoard.getSize())});
-        Array.from(tiles).forEach(tile => tile.addEventListener("click", clicked));
-        displayBoard();   
-        setTimeout(() => {infoDisplay.textContent = `Player ${players[turn].mark}'s turn`;}, 350);
+        displayBoard();
     }
 
     function endGame() {
         Array.from(tiles).forEach(tile => tile.removeEventListener("click", clicked));
+        enableBotToggles();
     }
 
     function displayBoard() {
         let tileMark = null;
         let selectedTile = null;
         let tileId = null;
-        
-        for(let k = 0; k < scores.length; k++) {
-            scores[k].textContent = `Score: ${players[k].getScore()}`;
-        }
 
         for (let i=0; i < 3; i++) {
             for (let j=0; j < 3; j++) {
@@ -214,12 +216,6 @@ displayController = (() => {
                 }
             }
         }
-    }
-
-    function updateBoard(x, y, mark) {
-        updateStatus = gameBoard.markTile(x, y, mark);
-        displayBoard();
-        return updateStatus
     }
 
     function detectWinner(player, boardSize) {
@@ -249,6 +245,14 @@ displayController = (() => {
         return null
     }
     
+    function increaseScore(turn) {
+        scores[turn].textContent = `${parseInt(scores[turn].textContent) + 1}`;
+    }
+
+    function resetScore() {
+        scores.forEach(score => {score.textContent = 0});
+    }
+
     function clicked(event) {
         coords = event.target.id.split('').map(function(element) {return parseInt(element, 10)});
 
@@ -259,8 +263,7 @@ displayController = (() => {
             winner = detectWinner(players[turn], gameBoard.getSize());
 
             if (winner) {
-                players[turn].increaseScore();
-                scores[turn].textContent = `Score: ${players[turn].getScore()}`;
+                increaseScore(turn);
                 infoDisplay.textContent = `Congrats player ${players[turn].mark}, you win!`;
                 endGame();
             }
@@ -279,5 +282,5 @@ displayController = (() => {
         }
     }
 
-    return {updateBoard, players}
+    return {}
 })();
