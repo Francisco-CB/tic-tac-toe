@@ -1,9 +1,9 @@
-const playerFactory = (mark, computer) => {
+const playerFactory = (mark, isComputer) => {
     let rows;
     let columns;
     let diag;
     let rdiag;
-    let bot = computer ?? false;
+    let bot = isComputer ?? false;
 
     function isBot() {
         return bot
@@ -50,12 +50,12 @@ const playerFactory = (mark, computer) => {
         x = Math.floor(Math.random() * (max - min + 1) + min);
         y = Math.floor(Math.random() * (max - min + 1) + min);
         randomCoords = [x, y];
-        // return [x, y]
         return randomCoords
     }
 
     return {mark, isBot, resetMovements, getMovements, addMovement, makeRandomMove}
 };
+
 
 gameBoard = ((size) => {
     let board;
@@ -81,14 +81,8 @@ gameBoard = ((size) => {
     }
 
     function markTile(xCoord, yCoord, mark) {
-        if (isValidMove(xCoord, yCoord)) {
-            board[xCoord][yCoord] = mark;
-            numberOfMovements += 1;
-            // return true
-        }
-        // else {
-        //     return false
-        // }
+        board[xCoord][yCoord] = mark;
+        numberOfMovements += 1;
     }
 
     function resetBoard(size) {
@@ -106,38 +100,26 @@ gameBoard = ((size) => {
 })(3);
 
 
-displayController = (() => {
+gameController = (() => {
     let turn = 0;
-    let coords;
-    let winner;
-    let players;
+    let playerScores = [0, 0];
     let validMove;
+    let players;
 
-    const infoDisplay = document.getElementById('infoDisplay');
-    
-    const playerXToggle = document.querySelector('#toggle-playerX input[name="xToggle"]');
-    const playerOToggle = document.querySelector('#toggle-playerO input[name="oToggle"]');
-    
-    const tiles = document.getElementsByClassName('boardTile');
-    
-    const startButton = document.getElementById('startButton'); 
-    startButton.addEventListener("click", startGame);
-    
-    const resetButton = document.getElementById('resetButton');
-    resetButton.addEventListener("click", resetGame);
-    
-    let scores = [document.querySelector('#playerXScore .score'), document.querySelector('#playerOScore .score')];
-    
-    function makePlayers() {
+    function makePlayers(playerXBot=false, playerOBot=false) {
         players = [
-            playerFactory("X", computer=playerXToggle.checked), 
-            playerFactory("O", computer=playerOToggle.checked)
+            playerFactory("X", isComputer=playerXBot),
+            playerFactory("O", isComputer=playerOBot)
         ];
         players.forEach(player => {player.resetMovements(gameBoard.getSize())});
     }
+    
+    function getPlayers() {
+        return players
+    }
 
-    function setNextTurn(currentTurn) {
-        if (currentTurn == 0) {
+    function setNextTurn() {
+        if (turn == 0) {
             turn = 1;
         }
         else {
@@ -145,21 +127,101 @@ displayController = (() => {
         }
     }
 
-    function makeBotMove(player) {
-            validMove = false;
-            while (!validMove) {
-                randomCoords = player.makeRandomMove(gameBoard.getSize()-1);
-                validMove = gameBoard.isValidMove(randomCoords[0], randomCoords[1]);
+    function getCurrentTurn() {
+        return turn
+    }
+
+    function detectWinner(player, boardSize) {
+        const reducer = (previousValue, currentValue) => previousValue + currentValue;
+        const comparer = (previousValue, currentValue) => previousValue == currentValue && currentValue > 0;
+        movements = [...player.getMovements()];
+        // Number of rows, columns, and diagonals independent of size of board
+        // Conditions always the same, just length of rows, columns, and diagonals changes
+        // Check rows and columns
+        for (let i = 0; i < movements.slice(0, 2).length; i++) {
+            if (movements.slice(0, 2)[i].includes(boardSize)) {
+                return true
             }
-            document.getElementById(`${randomCoords[0]}${randomCoords[1]}`).click();
+        }
+        
+        // Check diagonals
+        for (let j = 0; j < movements.slice(2).length; j++) {
+            if (movements.slice(2)[j].reduce(reducer) == boardSize && movements.slice(2)[j].reduce(comparer)) {
+                return true
+            }
+        }
+        
+        // Base case of draw
+        if (gameBoard.getTotalMovements() == 9) {
+            return false
+        }
+        return null
+    }
+
+    function increaseScore(turn) {
+        playerScores[turn] += 1;
+    }
+
+    function resetScore() {
+        playerScores = [0, 0];
+    }
+
+    function getPlayerScores() {
+        return playerScores
+    }
+
+    function makeBotMove(player) {
+        validMove = false;
+        while (!validMove) {
+            randomCoords = player.makeRandomMove(gameBoard.getSize()-1);
+            validMove = gameBoard.isValidMove(randomCoords[0], randomCoords[1]);
+        }
+        document.getElementById(`${randomCoords[0]}${randomCoords[1]}`).click();
     }
 
     function ifPlayerBotMove(player) {
         if(player.isBot()) {
-            makeBotMove(players[turn]);
+            makeBotMove(player);
         }
     }
 
+    function initializeGame(playerXBot=false, playerOBot=false) {
+        gameBoard.resetBoard(gameBoard.getSize());
+        makePlayers(playerXBot, playerOBot);
+    }
+
+    function resetGame() {
+        turn = 0;
+        resetScore();
+        gameBoard.resetBoard(gameBoard.getSize());
+    }
+
+    return {getPlayers, initializeGame, resetGame, getCurrentTurn, setNextTurn, increaseScore, getPlayerScores, ifPlayerBotMove, detectWinner}
+})()
+
+
+displayController = (() => {
+    let coords;
+    let winner;
+    let currentTurn;
+
+    const infoDisplay = document.getElementById('infoDisplay');
+    
+    const playerXToggle = document.querySelector('#toggle-playerX input[name="xToggle"]');
+    const playerOToggle = document.querySelector('#toggle-playerO input[name="oToggle"]');
+
+    const tiles = document.getElementsByClassName('boardTile');
+    
+    const startButton = document.getElementById('startButton'); 
+    startButton.addEventListener("click", startGame);
+    
+    const resetButton = document.getElementById('resetButton');
+    resetButton.addEventListener("click", restartGame);
+    
+    const playerScoresTexts = [document.querySelector('#playerXScore .score'), document.querySelector('#playerOScore .score')];
+
+    const controller = gameController;
+    
     function enableBotToggles() {
         playerXToggle.disabled = false;
         playerOToggle.disabled = false;
@@ -171,21 +233,20 @@ displayController = (() => {
     }
 
     function startGame() {
+        controller.initializeGame(playerXToggle.checked, playerOToggle.checked);
         disableBotToggles();
-        gameBoard.resetBoard(gameBoard.getSize());
-        makePlayers();
-        Array.from(tiles).forEach(tile => tile.addEventListener("click", clicked));
         displayBoard();
-        infoDisplay.textContent = `Player ${players[turn].mark}'s turn`;
-        ifPlayerBotMove(players[turn]);
+        currentTurn = controller.getCurrentTurn();
+        infoDisplay.textContent = `Player ${controller.getPlayers()[currentTurn].mark}'s turn`;
+        Array.from(tiles).forEach(tile => tile.addEventListener("click", clicked));
+        controller.ifPlayerBotMove(controller.getPlayers()[currentTurn]);
     }
 
-    function resetGame() {
+    function restartGame() {
         infoDisplay.textContent = `Press Start to play!`;
-        turn = 0;
-        resetScore();
         enableBotToggles();
-        gameBoard.resetBoard(gameBoard.getSize());
+        controller.resetGame();
+        resetScoreText();
         displayBoard();
     }
 
@@ -217,54 +278,29 @@ displayController = (() => {
             }
         }
     }
-
-    function detectWinner(player, boardSize) {
-        const reducer = (previousValue, currentValue) => previousValue + currentValue;
-        const comparer = (previousValue, currentValue) => previousValue == currentValue && currentValue > 0;
-        movements = [...player.getMovements()];
-        // Number of rows, columns, and diagonals independent of size of board
-        // Conditions always the same, just length of rows, columns, and diagonals changes
-        // Check rows and columns
-        for (let i = 0; i < movements.slice(0, 2).length; i++) {
-            if (movements.slice(0, 2)[i].includes(boardSize)) {
-                return true
-            }
-        }
-        
-        // Check diagonals
-        for (let j = 0; j < movements.slice(2).length; j++) {
-            if (movements.slice(2)[j].reduce(reducer) == boardSize && movements.slice(2)[j].reduce(comparer)) {
-                return true
-            }
-        }
-        
-        // Base case of draw
-        if (gameBoard.getTotalMovements() == 9) {
-            return false
-        }
-        return null
-    }
     
-    function increaseScore(turn) {
-        scores[turn].textContent = `${parseInt(scores[turn].textContent) + 1}`;
+    function updateScoreText(turn) {
+        playerScoresTexts[turn].textContent = `${controller.getPlayerScores()[turn]}`;
     }
 
-    function resetScore() {
-        scores.forEach(score => {score.textContent = 0});
+    function resetScoreText() {
+        playerScoresTexts.forEach(score => {score.textContent = 0});
     }
 
     function clicked(event) {
         coords = event.target.id.split('').map(function(element) {return parseInt(element, 10)});
+        currentTurn = controller.getCurrentTurn();
 
         if (gameBoard.isValidMove(coords[0], coords[1])) {
-            gameBoard.markTile(coords[0], coords[1], players[turn].mark);
+            gameBoard.markTile(coords[0], coords[1], controller.getPlayers()[currentTurn].mark);
+            controller.getPlayers()[currentTurn].addMovement(coords[0], coords[1], gameBoard.getSize());
             displayBoard();
-            players[turn].addMovement(coords[0], coords[1], gameBoard.getSize());
-            winner = detectWinner(players[turn], gameBoard.getSize());
+            winner = controller.detectWinner(controller.getPlayers()[currentTurn], gameBoard.getSize());
 
             if (winner) {
-                increaseScore(turn);
-                infoDisplay.textContent = `Congrats player ${players[turn].mark}, you win!`;
+                controller.increaseScore(currentTurn);
+                updateScoreText(currentTurn);
+                infoDisplay.textContent = `Congrats player ${controller.getPlayers()[currentTurn].mark}, you win!`;
                 endGame();
             }
 
@@ -273,11 +309,12 @@ displayController = (() => {
                 endGame();
             }
             
-            setNextTurn(turn);
+            controller.setNextTurn();
+            currentTurn = controller.getCurrentTurn();
 
             if (winner == null) {
-                infoDisplay.textContent = `Player ${players[turn].mark}'s turn`;
-                ifPlayerBotMove(players[turn]);
+                infoDisplay.textContent = `Player ${controller.getPlayers()[currentTurn].mark}'s turn`;
+                controller.ifPlayerBotMove(controller.getPlayers()[currentTurn]);
             }
         }
     }
