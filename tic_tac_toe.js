@@ -1,12 +1,17 @@
-const playerFactory = (mark, isComputer) => {
+const playerFactory = (mark, isComputer, difficulty) => {
     let rows;
     let columns;
     let diag;
     let rdiag;
     let bot = isComputer ?? false;
+    let diff = difficulty ?? false;
 
     function isBot() {
         return bot
+    }
+
+    function getDifficulty() {
+        return diff
     }
 
     function resetMovements(size) {
@@ -46,14 +51,20 @@ const playerFactory = (mark, isComputer) => {
         }
     }
 
-    function makeRandomMove(max, min=0) {
-        x = Math.floor(Math.random() * (max - min + 1) + min);
-        y = Math.floor(Math.random() * (max - min + 1) + min);
-        randomCoords = [x, y];
-        return randomCoords
+    function removeMovement(xIndex, yIndex, size) {
+        rows[xIndex] -= 1;
+        columns[yIndex] -= 1;
+        
+        if (xIndex == yIndex) {
+            diag[xIndex] -= 1;
+        }
+
+        if (xIndex + yIndex == size - 1) {
+            rdiag[xIndex] -= 1;
+        }
     }
 
-    return {mark, isBot, resetMovements, getMovements, addMovement, makeRandomMove}
+    return {mark, isBot, getDifficulty, resetMovements, getMovements, addMovement, removeMovement}
 };
 
 
@@ -82,7 +93,10 @@ gameBoard = ((size) => {
 
     function markTile(xCoord, yCoord, mark) {
         board[xCoord][yCoord] = mark;
-        numberOfMovements += 1;
+    }
+    
+    function updateNumberOfMoves(numberToAdd=1) {
+        numberOfMovements += numberToAdd;
     }
 
     function resetBoard(size) {
@@ -96,20 +110,19 @@ gameBoard = ((size) => {
         numberOfMovements = 0;
     }
     
-    return {board, getSize, getTotalMovements, isValidMove, markTile, resetBoard}
+    return {board, getSize, updateNumberOfMoves, getTotalMovements, isValidMove, markTile, resetBoard}
 })(3);
 
 
 gameController = (() => {
     let turn = 0;
     let playerScores = [0, 0];
-    let validMove;
     let players;
 
-    function makePlayers(playerXBot=false, playerOBot=false) {
+    function makePlayers(playerXBot=false, playerXDiff=false, playerOBot=false, playerODiff=false) {
         players = [
-            playerFactory("X", isComputer=playerXBot),
-            playerFactory("O", isComputer=playerOBot)
+            playerFactory("X", isComputer=playerXBot, difficulty=playerXDiff),
+            playerFactory("O", isComputer=playerOBot, difficulty=playerODiff)
         ];
         players.forEach(player => {player.resetMovements(gameBoard.getSize())});
     }
@@ -140,22 +153,23 @@ gameController = (() => {
         // Check rows and columns
         for (let i = 0; i < movements.slice(0, 2).length; i++) {
             if (movements.slice(0, 2)[i].includes(boardSize)) {
-                return true
+                return [true, player.mark]
             }
         }
         
         // Check diagonals
         for (let j = 0; j < movements.slice(2).length; j++) {
             if (movements.slice(2)[j].reduce(reducer) == boardSize && movements.slice(2)[j].reduce(comparer)) {
-                return true
+                return [true, player.mark]
             }
         }
         
         // Base case of draw
-        if (gameBoard.getTotalMovements() == 9) {
-            return false
+        if (gameBoard.getTotalMovements() == gameBoard.getSize()**2) {
+            return [false, null]
         }
-        return null
+
+        return [null, null]
     }
 
     function increaseScore(turn) {
@@ -170,24 +184,133 @@ gameController = (() => {
         return playerScores
     }
 
-    function makeBotMove(player) {
-        validMove = false;
+    function minimax(currentBoard, currentPlayer, isMaximizingPlayer, otherPlayer, scoring) {
+        let newEval;
+
+        let gameOverState = detectWinner(currentPlayer, currentBoard.getSize());
+        if (gameOverState[0] === true || gameOverState[0] === false) {
+            return stateEvaluation(gameOverState, scoring)
+        }
+
+        if (isMaximizingPlayer) {
+            let maxEval = -Infinity;
+            for (let i = 0; i < currentBoard.getSize(); i++) {
+                for (let j = 0; j < currentBoard.getSize(); j++) {
+                    if (currentBoard.isValidMove(i, j)) {
+                        currentBoard.markTile(i, j, currentPlayer.mark);
+                        currentBoard.updateNumberOfMoves(1);
+                        currentPlayer.addMovement(i, j, gameBoard.getSize());
+                        
+                        // Once maximizing player marks, it's minimizing player's turn
+                        newEval = minimax(currentBoard, otherPlayer, false, currentPlayer, scoring);
+                        maxEval = Math.max(maxEval, newEval);
+                        
+                        currentBoard.markTile(i, j, null);
+                        currentBoard.updateNumberOfMoves(-1);
+                        currentPlayer.removeMovement(i, j, gameBoard.getSize());
+                    }
+                }
+            }
+            return maxEval
+        }
+
+        else {
+            let minEval = Infinity;
+            for (let i = 0; i < currentBoard.getSize(); i++) {
+                for (let j = 0; j < currentBoard.getSize(); j++) {
+                    if (currentBoard.isValidMove(i, j)) {
+                        currentBoard.markTile(i, j, currentPlayer.mark);
+                        currentBoard.updateNumberOfMoves(1);
+                        currentPlayer.addMovement(i, j, gameBoard.getSize());
+                        
+                        // Once minimizing player marks, it's maximizing player's turn
+                        newEval = minimax(currentBoard, otherPlayer, true, currentPlayer, scoring);
+                        minEval = Math.min(minEval, newEval);
+                        
+                        currentBoard.markTile(i, j, null);
+                        currentBoard.updateNumberOfMoves(-1);
+                        currentPlayer.removeMovement(i, j, gameBoard.getSize());
+                    }
+                }
+            }
+            return minEval
+        }
+    }
+
+    function stateEvaluation(gameOverState, scoringBoard) {
+        if (gameOverState[1] === null) {
+            return scoringBoard["draw"]
+        }
+        else {
+            return scoringBoard[gameOverState[1]]
+        }
+    }
+
+    function makeBestMove(currentBoard, currentPlayer, otherPlayer) {
+        let scores = {
+            [currentPlayer.mark]: 1,
+            [otherPlayer.mark]: -1,
+            draw: 0
+        };
+
+        let bestScore = -Infinity;
+        let move = null;
+        let finalEval;
+
+        for (let i = 0; i < currentBoard.getSize(); i++) {
+            for (let j = 0; j < currentBoard.getSize(); j++) {
+                if (currentBoard.isValidMove(i, j)) {
+                    currentBoard.markTile(i, j, currentPlayer.mark);
+                    currentBoard.updateNumberOfMoves(1);
+                    currentPlayer.addMovement(i, j, gameBoard.getSize());
+                    
+                    finalEval = minimax(currentBoard, otherPlayer, false, currentPlayer, scores);
+                    
+                    currentBoard.markTile(i, j, null);
+                    currentBoard.updateNumberOfMoves(-1);
+                    currentPlayer.removeMovement(i, j, gameBoard.getSize());
+                    
+                    if (finalEval > bestScore) {
+                        bestScore = finalEval;
+                        move = [i, j];
+                    }
+                }
+            }
+        }
+        return move
+    }
+
+    function makeEasyBotMove(board) {
+        let validMove = false;
+        max = board.getSize()-1;
+        min = 0;
         while (!validMove) {
-            randomCoords = player.makeRandomMove(gameBoard.getSize()-1);
+            randomCoords = [
+                Math.floor(Math.random() * (max - min + 1) + min),
+                Math.floor(Math.random() * (max - min + 1) + min)
+            ];
             validMove = gameBoard.isValidMove(randomCoords[0], randomCoords[1]);
         }
-        document.getElementById(`${randomCoords[0]}${randomCoords[1]}`).click();
+
+        return randomCoords
     }
 
-    function ifPlayerBotMove(player) {
+    function ifPlayerBotMove(board, player, otherPlayer) {
         if(player.isBot()) {
-            makeBotMove(player);
+            //Hard Bot
+            if (player.getDifficulty()) {
+                return makeBestMove(board, player, otherPlayer)
+            }
+            //Easy Bot
+            else {
+                return makeEasyBotMove(board)
+            }
         }
     }
 
-    function initializeGame(playerXBot=false, playerOBot=false) {
+    function initializeGame(playerXBot=false, playerXDiff=false, playerOBot=false, playerODiff=false) {
         gameBoard.resetBoard(gameBoard.getSize());
-        makePlayers(playerXBot, playerOBot);
+        makePlayers(playerXBot, playerXDiff, playerOBot, playerODiff);
     }
 
     function resetGame() {
@@ -208,7 +331,9 @@ displayController = (() => {
     const infoDisplay = document.getElementById('infoDisplay');
     
     const playerXToggle = document.querySelector('#toggle-playerX input[name="xToggle"]');
+    const playerXDiffToggle = document.querySelector('#diff-toggle-playerX input[name="diff-xToggle"]');
     const playerOToggle = document.querySelector('#toggle-playerO input[name="oToggle"]');
+    const playerODiffToggle = document.querySelector('#diff-toggle-playerO input[name="diff-oToggle"]');
 
     const tiles = document.getElementsByClassName('boardTile');
     
@@ -221,25 +346,40 @@ displayController = (() => {
     const playerScoresTexts = [document.querySelector('#playerXScore .score'), document.querySelector('#playerOScore .score')];
 
     const controller = gameController;
-    
+
     function enableBotToggles() {
         playerXToggle.disabled = false;
+        playerXDiffToggle.disabled = false;
         playerOToggle.disabled = false;
+        playerODiffToggle.disabled = false;
     }
 
     function disableBotToggles() {
         playerXToggle.disabled = true;
+        playerXDiffToggle.disabled = false;
         playerOToggle.disabled = true;
+        playerODiffToggle.disabled = false;
     }
 
     function startGame() {
-        controller.initializeGame(playerXToggle.checked, playerOToggle.checked);
+        controller.initializeGame(playerXToggle.checked, playerXDiffToggle.checked, playerOToggle.checked, playerODiffToggle.checked);
         disableBotToggles();
         displayBoard();
         currentTurn = controller.getCurrentTurn();
         infoDisplay.textContent = `Player ${controller.getPlayers()[currentTurn].mark}'s turn`;
         Array.from(tiles).forEach(tile => tile.addEventListener("click", clicked));
-        controller.ifPlayerBotMove(controller.getPlayers()[currentTurn]);
+        
+        if (currentTurn === 0) {
+            otherPlayer = controller.getPlayers()[1]
+        }
+        else {
+            otherPlayer = controller.getPlayers()[0]
+        }
+
+        moves = controller.ifPlayerBotMove(gameBoard, controller.getPlayers()[currentTurn], otherPlayer);
+        if (moves !== null) {
+            document.getElementById(`${moves[0]}${moves[1]}`).click();
+        }
     }
 
     function restartGame() {
@@ -293,9 +433,10 @@ displayController = (() => {
 
         if (gameBoard.isValidMove(coords[0], coords[1])) {
             gameBoard.markTile(coords[0], coords[1], controller.getPlayers()[currentTurn].mark);
+            gameBoard.updateNumberOfMoves();
             controller.getPlayers()[currentTurn].addMovement(coords[0], coords[1], gameBoard.getSize());
             displayBoard();
-            winner = controller.detectWinner(controller.getPlayers()[currentTurn], gameBoard.getSize());
+            [winner, winningMark] = controller.detectWinner(controller.getPlayers()[currentTurn], gameBoard.getSize());
 
             if (winner) {
                 controller.increaseScore(currentTurn);
@@ -314,7 +455,17 @@ displayController = (() => {
 
             if (winner == null) {
                 infoDisplay.textContent = `Player ${controller.getPlayers()[currentTurn].mark}'s turn`;
-                controller.ifPlayerBotMove(controller.getPlayers()[currentTurn]);
+                if (currentTurn === 0) {
+                    otherPlayer = controller.getPlayers()[1]
+                }
+                else {
+                    otherPlayer = controller.getPlayers()[0]
+                }
+        
+                moves = controller.ifPlayerBotMove(gameBoard, controller.getPlayers()[currentTurn], otherPlayer);
+                if (moves !== null) {
+                    document.getElementById(`${moves[0]}${moves[1]}`).click();
+                }
             }
         }
     }

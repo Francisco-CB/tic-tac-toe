@@ -167,3 +167,37 @@ https://codepen.io/Mr_Rahul_Tiwari/pen/ZEWMZNV */
     left: 48px;
     background-color: var(--cinnabar);
 }
+
+#diff-toggle-playerX, #diff-toggle-playerO
+{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100px;
+    height: 40px;
+    margin: 0 auto;
+    background: var(--floral-white);
+}
+
+#diff-toggle-playerX .knobs::before, #diff-toggle-playerO .knobs::before
+{
+    content: 'Real dumb';
+    margin: 0 auto;
+    padding: 5px 4px;
+    width: 80px;
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    font-size: 12px;
+    color: var(--black);
+    background-color: var(--cyan-process);
+    border-radius: 5px;
+    transition: 0.15s ease all;
+}
+
+#diff-toggle-playerX .checkbox:checked + .knobs::before, #diff-toggle-playerO .checkbox:checked + .knobs::before
+{
+    content: 'Invincible?';
+    width: 80px;
+    background-color: var(--cinnabar);
+}
